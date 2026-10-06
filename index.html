@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>運動管理アプリ</title>
+  <style>
+    :root {
+      --green: #27866b;
+      --ink: #20312d;
+      --muted: #71807b;
+      --line: #e5ebe8;
+      --bg: #f5f8f6;
+      --red: #bd514b;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+
+    header {
+      padding: 24px 20px;
+      background: var(--green);
+      color: white;
+    }
+
+    header > div, main {
+      width: min(960px, 100%);
+      margin: auto;
+    }
+
+    header > div {
+      position: relative;
+      padding-right: 110px;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.5rem;
+    }
+
+    header p {
+      margin: 6px 0 0;
+      opacity: .88;
+      font-size: .93rem;
+    }
+
+    main {
+      padding: 22px 16px 40px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .card, .panel {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: 0 3px 12px #21392e08;
+    }
+
+    .card { padding: 16px; }
+
+    .card-label {
+      color: var(--muted);
+      font-size: .85rem;
+    }
+
+    .card-value {
+      margin-top: 7px;
+      font-size: 1.65rem;
+      font-weight: 700;
+    }
+
+    .card-value small {
+      font-size: .85rem;
+      font-weight: 500;
+      color: var(--muted);
+    }
+
+    .panel {
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    h2 {
+      margin: 0 0 16px;
+      font-size: 1.08rem;
+    }
+
+    .goal-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: .9rem;
+    }
+
+    .goal-row input { width: 90px; }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 10px 11px;
+      border: 1px solid #dce5e0;
+      border-radius: 9px;
+      background: white;
+      color: var(--ink);
+      font: inherit;
+    }
+
+    .goal-row input {
+      padding: 8px;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: 2px solid #b5ddce;
+      border-color: var(--green);
+    }
+
+    .progress-track {
+      height: 10px;
+      margin-top: 14px;
+      overflow: hidden;
+      border-radius: 20px;
+      background: #edf1ef;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0;
+      border-radius: inherit;
+      background: var(--green);
+      transition: width .25s;
+    }
+
+    .chart {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 10px;
+      align-items: end;
+      height: 145px;
+      margin-top: 18px;
+    }
+
+    .bar-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: end;
+      height: 100%;
+      gap: 7px;
+      color: var(--muted);
+      font-size: .75rem;
+    }
+
+    .bar-value {
+      min-height: 16px;
+      color: var(--ink);
+      font-size: .7rem;
+    }
+
+    .bar-track {
+      display: flex;
+      align-items: end;
+      width: min(34px, 80%);
+      height: 95px;
+      overflow: hidden;
+      border-radius: 8px;
+      background: #f0f4f2;
+    }
+
+    .bar-fill {
+      width: 100%;
+      min-height: 3px;
+      border-radius: 8px;
+      background: #75b9a2;
+    }
+
+    .bar-item.today {
+      color: var(--green);
+      font-weight: 700;
+    }
+
+    .bar-item.today .bar-fill { background: var(--green); }
+
+    form.workout-form {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 13px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .field.full { grid-column: 1 / -1; }
+
+    label {
+      font-size: .85rem;
+      font-weight: 600;
+    }
+
+    textarea {
+      min-height: 74px;
+      resize: vertical;
+    }
+
+    button {
+      border: 0;
+      border-radius: 9px;
+      padding: 11px 16px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .submit-button {
+      grid-column: 1 / -1;
+      color: white;
+      background: var(--green);
+    }
+
+    .submit-button:hover, .primary-button:hover {
+      background: #1e7058;
+    }
+
+    .records-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .records-header h2 { margin: 0; }
+
+    .record-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .record {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 13px;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+    }
+
+    .record-main { min-width: 0; }
+
+    .record-title {
+      font-weight: 700;
+      overflow-wrap: anywhere;
+    }
+
+    .record-detail {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: .83rem;
+    }
+
+    .delete-button {
+      flex: 0 0 auto;
+      padding: 7px 10px;
+      color: var(--red);
+      background: #fff2f1;
+      font-size: .82rem;
+    }
+
+    .empty {
+      padding: 24px 10px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    /* ストップウォッチ */
+    .stopwatch { text-align: center; }
+
+    .stopwatch-time {
+      margin: 8px 0 16px;
+      font-size: clamp(2rem, 8vw, 3rem);
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: .06em;
+    }
+
+    .stopwatch-actions {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .stopwatch-actions button,
+    .primary-button {
+      color: white;
+      background: var(--green);
+    }
+
+    .stopwatch-actions .secondary {
+      color: var(--ink);
+      background: #edf2ef;
+    }
+
+    .note {
+      margin: 14px 0 0;
+      color: var(--muted);
+      font-size: .85rem;
+    }
+
+    /* ログイン画面 */
+    .login-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: var(--bg);
+    }
+
+    .login-overlay[hidden] { display: none; }
+
+    .login-box {
+      width: min(400px, 100%);
+      padding: 24px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: white;
+      box-shadow: 0 8px 30px #21392e12;
+    }
+
+    .login-box h2 { margin-bottom: 8px; }
+
+    .login-note {
+      margin: 0 0 18px;
+      color: var(--muted);
+      font-size: .88rem;
+      line-height: 1.6;
+    }
+
+    .login-box .field { margin-bottom: 12px; }
+
+    .login-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .login-actions button {
+      color: white;
+      background: var(--green);
+    }
+
+    .login-actions button:hover { background: #1e7058; }
+
+    #loginMessage {
+      min-height: 1.4em;
+      margin-top: 12px;
+      color: var(--red);
+      font-size: .88rem;
+    }
+
+    .logout-button {
+      position: absolute;
+      top: 24px;
+      right: 0;
+      padding: 8px 12px;
+      color: white;
+      background: #ffffff24;
+    }
+
+    .logout-button:hover { background: #ffffff40; }
+    .logout-button[hidden] { display: none; }
+
+    @media (max-width: 600px) {
+      .stats { gap: 8px; }
+      .card { padding: 12px 10px; }
+      .card-label { font-size: .75rem; }
+      .card-value { font-size: 1.3rem; }
+      .panel { padding: 16px; }
+      form.workout-form { grid-template-columns: 1fr; }
+      .field.full, .submit-button { grid-column: auto; }
+      .record { align-items: flex-start; }
+      .logout-button { top: 18px; right: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="login-overlay" id="loginOverlay">
+    <section class="login-box">
+      <h2>運動管理にログイン</h2>
+      <p class="login-note">
+        初めて使う場合は「新規登録」、登録済みの場合は「ログイン」を選んでください。
+      </p>
+
+      <div class="field">
+        <label for="loginUsername">ユーザー名</label>
+        <input id="loginUsername" type="text" maxlength="30" autocomplete="username">
+      </div>
+
+      <div class="field">
+        <label for="loginPassword">パスワード（6文字以上）</label>
+        <input id="loginPassword" type="password" autocomplete="current-password">
+      </div>
+
+      <div class="login-actions">
+        <button type="button" id="loginButton">ログイン</button>
+        <button type="button" id="registerButton">新規登録</button>
+      </div>
+      <div id="loginMessage" role="status"></div>
+    </section>
+  </div>
+
+  <header>
+    <div>
+      <h1>🏃 運動管理</h1>
+      <p>日々の運動を記録して、習慣づくりに役立てましょう。</p>
+      <button class="logout-button" id="logoutButton" type="button" hidden>
+        ログアウト
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <section class="stats" aria-label="運動の統計">
+      <div class="card">
+        <div class="card-label">今月の回数</div>
+        <div class="card-value" id="monthCount">0<small> 回</small></div>
+      </div>
+      <div class="card">
+        <div class="card-label">今月の運動時間</div>
+        <div class="card-value" id="monthMinutes">0<small> 分</small></div>
+      </div>
+      <div class="card">
+        <div class="card-label">今週の運動時間</div>
+        <div class="card-value" id="weekMinutes">0<small> 分</small></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>今週の目標</h2>
+      <div class="goal-row">
+        <span>目標：</span>
+        <input id="weeklyGoal" type="number" min="1" max="9999" value="150"
+               aria-label="週間目標（分）">
+        <span>分 / 週</span>
+        <span id="goalStatus"></span>
+      </div>
+      <div class="progress-track" aria-label="週間目標の達成度">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+      <div class="chart" id="weeklyChart" aria-label="今週の日別運動時間"></div>
+    </section>
+
+    <section class="panel stopwatch">
+      <h2>ストップウォッチ</h2>
+      <div class="stopwatch-time" id="stopwatchDisplay">00:00:00</div>
+      <div class="stopwatch-actions">
+        <button type="button" id="stopwatchStart">スタート</button>
+        <button type="button" id="stopwatchPause" class="secondary">一時停止</button>
+        <button type="button" id="stopwatchReset" class="secondary">リセット</button>
+        <button type="button" id="stopwatchSave">運動として記録</button>
+      </div>
+      <p class="note">記録時の運動名は「ストップウォッチ」、時間は分単位に切り上げます。</p>
+    </section>
+
+    <section class="panel">
+      <h2>運動を記録</h2>
+      <form class="workout-form" id="workoutForm">
+        <div class="field">
+          <label for="date">日付</label>
+          <input id="date" name="date" type="date" required>
+        </div>
+        <div class="field">
+          <label for="type">運動の種類</label>
+          <select id="type" name="type">
+            <option>ウォーキング</option>
+            <option>ランニング</option>
+            <option>筋トレ</option>
+            <option>サイクリング</option>
+            <option>ヨガ・ストレッチ</option>
+            <option>水泳</option>
+            <option>その他</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="name">運動内容</label>
+          <input id="name" name="name" type="text" placeholder="例：朝のジョギング"
+                 required maxlength="60">
+        </div>
+        <div class="field">
+          <label for="duration">時間（分）</label>
+          <input id="duration" name="duration" type="number" min="1" max="1440"
+                 placeholder="30" required>
+        </div>
+        <div class="field full">
+          <label for="memo">メモ（任意）</label>
+          <textarea id="memo" name="memo" placeholder="運動の感想や体調など"></textarea>
+        </div>
+        <button class="submit-button" type="submit">記録を追加</button>
+      </form>
+    </section>
+
+    <section class="panel">
+      <div class="records-header">
+        <h2>記録一覧</h2>
+        <select id="filter" aria-label="記録の絞り込み">
+          <option value="all">すべて</option>
+          <option value="month">今月</option>
+        </select>
+      </div>
+      <div class="record-list" id="recordList"></div>
+    </section>
+  </main>
+
+  <script>
+    const ACCOUNTS_KEY = "workout-accounts-v1";
+    let currentUser = sessionStorage.getItem("workout-current-user");
+    let records = [];
+
+    function recordsKey() {
+      return `workout-records-v1-${currentUser}`;
+    }
+
+    function goalKey() {
+      return `workout-weekly-goal-v1-${currentUser}`;
+    }
+
+    function loadRecords() {
+      if (!currentUser) return [];
+
+      try {
+        const saved = JSON.parse(localStorage.getItem(recordsKey()) || "[]");
+        return Array.isArray(saved) ? saved : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function saveRecords() {
+      if (currentUser) {
+        localStorage.setItem(recordsKey(), JSON.stringify(records));
+      }
+    }
+
+    function localDateString(date = new Date()) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+
+    function mondayOf(date) {
+      const result = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      const day = (result.getDay() + 6) % 7;
+      result.setDate(result.getDate() - day);
+      return result;
+    }
+
+    function escapeHTML(value) {
+      return String(value).replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+      })[char]);
+    }
+
+    function render() {
+      if (!currentUser) return;
+
+      const now = new Date();
+      const today = localDateString(now);
+      const monthPrefix = today.slice(0, 7);
+      const mondayString = localDateString(mondayOf(now));
+
+      const thisMonth = records.filter(record => record.date.startsWith(monthPrefix));
+      const thisWeek = records.filter(record =>
+        record.date >= mondayString && record.date <= today
+      );
+
+      const monthMinutes = thisMonth.reduce((sum, record) => sum + Number(record.duration), 0);
+      const weekMinutes = thisWeek.reduce((sum, record) => sum + Number(record.duration), 0);
+
+      document.getElementById("monthCount").innerHTML =
+        `${thisMonth.length}<small> 回</small>`;
+      document.getElementById("monthMinutes").innerHTML =
+        `${monthMinutes}<small> 分</small>`;
+      document.getElementById("weekMinutes").innerHTML =
+        `${weekMinutes}<small> 分</small>`;
+
+      renderGoal(weekMinutes);
+      renderChart(thisWeek);
+      renderRecords();
+    }
+
+    function renderGoal(weekMinutes) {
+      const goalInput = document.getElementById("weeklyGoal");
+      const savedGoal = Number(localStorage.getItem(goalKey()));
+
+      if (document.activeElement !== goalInput && savedGoal > 0) {
+        goalInput.value = savedGoal;
+      }
+
+      const goal = Math.max(1, Number(goalInput.value) || 150);
+      const percent = Math.min(100, (weekMinutes / goal) * 100);
+
+      document.getElementById("progressBar").style.width = `${percent}%`;
+      document.getElementById("goalStatus").textContent =
+        `${weekMinutes} / ${goal} 分（${Math.floor(percent)}%）`;
+    }
+
+    function renderChart(thisWeek) {
+      const chart = document.getElementById("weeklyChart");
+      const labels = ["月", "火", "水", "木", "金", "土", "日"];
+      const dailyMinutes = Array(7).fill(0);
+
+      for (const record of thisWeek) {
+        const [year, month, day] = record.date.split("-").map(Number);
+        const date = new Date(year, month - 1, day);
+        const index = (date.getDay() + 6) % 7;
+        dailyMinutes[index] += Number(record.duration);
+      }
+
+      const max = Math.max(...dailyMinutes, 30);
+      const todayIndex = (new Date().getDay() + 6) % 7;
+
+      chart.innerHTML = labels.map((label, index) => {
+        const height = dailyMinutes[index]
+          ? Math.max(5, (dailyMinutes[index] / max) * 100)
+          : 0;
+
+        return `
+          <div class="bar-item ${index === todayIndex ? "today" : ""}">
+            <div class="bar-value">${dailyMinutes[index] || ""}</div>
+            <div class="bar-track">
+              <div class="bar-fill" style="height:${height}%"></div>
+            </div>
+            <div>${label}</div>
+          </div>`;
+      }).join("");
+    }
+
+    function renderRecords() {
+      const list = document.getElementById("recordList");
+      const filter = document.getElementById("filter").value;
+      const monthPrefix = localDateString().slice(0, 7);
+
+      const visible = [...records]
+        .filter(record => filter !== "month" || record.date.startsWith(monthPrefix))
+        .sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id);
+
+      if (visible.length === 0) {
+        list.innerHTML = '<div class="empty">まだ記録がありません。運動を記録してみましょう！</div>';
+        return;
+      }
+
+      list.innerHTML = visible.map(record => `
+        <article class="record">
+          <div class="record-main">
+            <div class="record-title">${escapeHTML(record.name)}</div>
+            <div class="record-detail">
+              ${escapeHTML(record.date)} ・ ${escapeHTML(record.type)}
+              ・ ${Number(record.duration)} 分
+              ${record.memo ? `<br>${escapeHTML(record.memo)}` : ""}
+            </div>
+          </div>
+          <button class="delete-button" type="button" data-delete="${record.id}">削除</button>
+        </article>
+      `).join("");
+    }
+
+    document.getElementById("workoutForm").addEventListener("submit", event => {
+      event.preventDefault();
+
+      const form = event.currentTarget;
+      const data = new FormData(form);
+      const duration = Number(data.get("duration"));
+
+      if (!Number.isFinite(duration) || duration < 1 || duration > 1440) {
+        alert("時間は1〜1440分で入力してください。");
+        return;
+      }
+
+      records.push({
+        id: Date.now(),
+        date: data.get("date"),
+        type: data.get("type"),
+        name: data.get("name").trim(),
+        duration,
+        memo: data.get("memo").trim()
+      });
+
+      saveRecords();
+      form.reset();
+      document.getElementById("date").value = localDateString();
+      render();
+    });
+
+    document.getElementById("weeklyGoal").addEventListener("input", event => {
+      const goal = Math.max(1, Number(event.target.value) || 150);
+      if (currentUser) {
+        localStorage.setItem(goalKey(), String(goal));
+      }
+      render();
+    });
+
+    document.getElementById("filter").addEventListener("change", renderRecords);
+
+    document.getElementById("recordList").addEventListener("click", event => {
+      const button = event.target.closest("[data-delete]");
+      if (!button) return;
+
+      const id = Number(button.dataset.delete);
+      if (confirm("この記録を削除しますか？")) {
+        records = records.filter(record => record.id !== id);
+        saveRecords();
+        render();
+      }
+    });
+
+    // ログイン・新規登録
+    async function hashPassword(password) {
+      const data = new TextEncoder().encode(password);
+      const hash = await crypto.subtle.digest("SHA-256", data);
+
+      return Array.from(new Uint8Array(hash))
+        .map(byte => byte.toString(16).padStart(2, "0"))
+        .join("");
+    }
+
+    function getAccounts() {
+      try {
+        return JSON.parse(localStorage.getItem(ACCOUNTS_KEY) || "{}");
+      } catch {
+        return {};
+      }
+    }
+
+    function showApp() {
+      document.getElementById("loginOverlay").hidden = true;
+      document.getElementById("logoutButton").hidden = false;
+      document.getElementById("date").value = localDateString();
+      render();
+    }
+
+    async function authenticate(isRegister) {
+      const usernameInput = document.getElementById("loginUsername");
+      const passwordInput = document.getElementById("loginPassword");
+      const message = document.getElementById("loginMessage");
+
+      const username = usernameInput.value.trim();
+      const password = passwordInput.value;
+      message.textContent = "";
+
+      if (!username) {
+        message.textContent = "ユーザー名を入力してください。";
+        return;
+      }
+
+      if (password.length < 6) {
+        message.textContent = "パスワードは6文字以上で入力してください。";
+        return;
+      }
+
+      try {
+        const accounts = getAccounts();
+        const accountKey = username.toLowerCase();
+        const passwordHash = await hashPassword(password);
+
+        if (isRegister) {
+          if (accounts[accountKey]) {
+            message.textContent = "そのユーザー名はすでに登録されています。";
+            return;
+          }
+
+          accounts[accountKey] = { username, passwordHash };
+          localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
+        } else {
+          const account = accounts[accountKey];
+
+          if (!account || account.passwordHash !== passwordHash) {
+            message.textContent = "ユーザー名またはパスワードが違います。";
+            return;
+          }
+        }
+
+        currentUser = accountKey;
+        sessionStorage.setItem("workout-current-user", currentUser);
+        records = loadRecords();
+        passwordInput.value = "";
+        showApp();
+      } catch {
+        message.textContent =
+          "ログイン機能を利用できません。localhostまたはHTTPS上で開いてください。";
+      }
+    }
+
+    document.getElementById("loginButton").addEventListener("click", () => {
+      authenticate(false);
+    });
+
+    document.getElementById("registerButton").addEventListener("click", () => {
+      authenticate(true);
+    });
+
+    document.getElementById("logoutButton").addEventListener("click", () => {
+      sessionStorage.removeItem("workout-current-user");
+      currentUser = null;
+      records = [];
+      document.getElementById("loginOverlay").hidden = false;
+      document.getElementById("logoutButton").hidden = true;
+      document.getElementById("loginPassword").value = "";
+      document.getElementById("loginMessage").textContent = "";
+    });
+
+    // ストップウォッチ
+    let stopwatchElapsed = 0;
+    let stopwatchStartedAt = null;
+    let stopwatchInterval = null;
+
+    function getStopwatchElapsed() {
+      if (stopwatchStartedAt === null) return stopwatchElapsed;
+      return stopwatchElapsed + (Date.now() - stopwatchStartedAt);
+    }
+
+    function updateStopwatchDisplay() {
+      const totalSeconds = Math.floor(getStopwatchElapsed() / 1000);
+      const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, "0");
+      const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, "0");
+      const seconds = String(totalSeconds % 60).padStart(2, "0");
+
+      document.getElementById("stopwatchDisplay").textContent =
+        `${hours}:${minutes}:${seconds}`;
+    }
+
+    document.getElementById("stopwatchStart").addEventListener("click", () => {
+      if (stopwatchStartedAt !== null) return;
+
+      stopwatchStartedAt = Date.now();
+      stopwatchInterval = setInterval(updateStopwatchDisplay, 250);
+    });
+
+    document.getElementById("stopwatchPause").addEventListener("click", () => {
+      if (stopwatchStartedAt === null) return;
+
+      stopwatchElapsed = getStopwatchElapsed();
+      stopwatchStartedAt = null;
+      clearInterval(stopwatchInterval);
+      updateStopwatchDisplay();
+    });
+
+    document.getElementById("stopwatchReset").addEventListener("click", () => {
+      stopwatchElapsed = 0;
+      stopwatchStartedAt = null;
+      clearInterval(stopwatchInterval);
+      updateStopwatchDisplay();
+    });
+
+    document.getElementById("stopwatchSave").addEventListener("click", () => {
+      if (!currentUser) {
+        alert("先にログインしてください。");
+        return;
+      }
+
+      const elapsed = getStopwatchElapsed();
+
+      if (elapsed < 1000) {
+        alert("少し運動してから記録してください。");
+        return;
+      }
+
+      const minutes = Math.ceil(elapsed / 60000);
+
+      records.push({
+        id: Date.now(),
+        date: localDateString(),
+        type: "その他",
+        name: "ストップウォッチ",
+        duration: minutes,
+        memo: ""
+      });
+
+      saveRecords();
+      render();
+      alert(`${minutes}分の運動を記録しました。`);
+    });
+
+    // 前回のログイン状態を復元
+    if (currentUser && getAccounts()[currentUser]) {
+      records = loadRecords();
+      showApp();
+    } else {
+      currentUser = null;
+      sessionStorage.removeItem("workout-current-user");
+      document.getElementById("loginOverlay").hidden = false;
+    }
+  </script>
+</body>
+</html>
